@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#101827" />
+  <meta name="description" content="브라우저에서 사용하는 무료 공학용 계산기" />
+  <title>SCIENTIFIC CALC | 공학용 계산기</title>
+  <style>
+    :root{color-scheme:dark;font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;background:#0b1020;color:#e9eef8}
+    *{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(circle at 50% -25%,#233758 0,transparent 50%),#0b1020}
+    button,input{font:inherit}button{cursor:pointer;touch-action:manipulation}button:focus-visible,input:focus-visible{outline:2px solid #8facff;outline-offset:3px}
+    .app{max-width:510px;margin:auto;padding:36px 16px 60px}.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;gap:12px}
+    .eyebrow{font-size:11px;font-weight:700;letter-spacing:.21em;color:#95a8c7}.top h1{font-size:23px;margin:3px 0 0;letter-spacing:-.035em}.pill{padding:9px 12px;border:1px solid #36455f;border-radius:99px;background:#172238;color:#d9e6ff;font-size:12px}
+    .calculator{padding:19px;border:1px solid #30405a;background:#151e30;border-radius:25px;box-shadow:0 25px 65px #0006}
+    .display{background:#0b1425;border:1px solid #2a3852;border-radius:17px;padding:20px 19px 16px;min-height:154px;display:flex;flex-direction:column;justify-content:space-between;gap:14px}
+    .display-head{display:flex;align-items:center;justify-content:space-between;color:#8394b4;font-size:12px}.mode{background:#253959;color:#c6dbff;border:0;border-radius:8px;padding:6px 11px;font-size:12px;font-weight:800}
+    .expression{width:100%;border:0;background:transparent;color:#e4ecff;font-size:22px;text-align:right;outline:none;min-width:0;letter-spacing:.02em}.expression::placeholder{color:#5f7391}
+    .result{font-size:33px;text-align:right;font-weight:700;letter-spacing:-.035em;overflow-wrap:anywhere;min-height:40px;color:#f8faff}
+    .status{font-size:11px;min-height:16px;color:#93a5c4;margin:11px 3px}.status.error{color:#ff9c9c}
+    .keys{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:9px}
+    .key{min-width:0;min-height:57px;border-radius:12px;border:1px solid #35455e;background:#253149;color:#eff3fc;font-size:17px;font-weight:600;transition:background .12s,transform .1s}
+    .key:active{transform:scale(.96)}.key:hover{background:#30415c}.key.fn{color:#bad2ff;background:#20314c}.key.fn:hover{background:#304869}.key.op{background:#2a3d5c;color:#a5c9ff}.key.danger{color:#ffb3b3;background:#3b2936}.key.equal{background:#688dff;color:#07122b;border-color:#85a6ff;font-size:23px}.key.equal:hover{background:#87a4ff}.key.small{font-size:14px}
+    .foot{margin:19px 1px 0;display:flex;justify-content:space-between;align-items:center;gap:12px;color:#9aabc6;font-size:13px}.foot button{border:1px solid #36465f;background:#1c2a42;color:#d5e3fc;padding:9px 12px;border-radius:10px;font-size:12px}
+    .history{margin-top:16px;border:1px solid #30405a;background:#151e30;border-radius:18px;padding:15px 17px}.history-head{display:flex;align-items:center;justify-content:space-between}.history h2{font-size:14px;margin:0}.history-head button{border:0;background:transparent;color:#97b8fa;font-size:12px}.history ul{list-style:none;padding:0;margin:12px 0 0;max-height:240px;overflow:auto}.history li{border-top:1px solid #293952;padding:11px 1px;display:flex;gap:12px;align-items:center;justify-content:space-between}.history .item{overflow-wrap:anywhere;min-width:0}.history .expr{color:#95a8c7;font-size:12px}.history .answer{font-weight:650;margin-top:2px}.history li button{flex-shrink:0;color:#d1e0ff;border:1px solid #344963;border-radius:8px;background:#1e2e47;padding:7px 10px;font-size:12px}.empty{color:#8ea1bf;font-size:12px;margin:14px 0 0}
+    .note{font-size:12px;color:#8a9dbb;line-height:1.7;margin:19px 5px}.note a{color:#a8c2ff}
+    @media(max-width:390px){.app{padding:20px 10px 40px}.calculator{padding:12px}.keys{gap:6px}.key{min-height:51px;font-size:15px}.key.small{font-size:12px}.result{font-size:28px}}
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header class="top"><div><div class="eyebrow">ENGINEERING TOOL</div><h1>Scientific Calc<span style="color:#7ca3ff">.</span></h1></div><div class="pill">WEB EDITION</div></header>
+    <section class="calculator" aria-label="공학용 계산기">
+      <div class="display">
+        <div class="display-head"><span>수식 입력</span><button class="mode" id="mode" aria-label="각도 단위 전환">DEG</button></div>
+        <input id="expression" class="expression" type="text" inputmode="none" autocomplete="off" spellcheck="false" aria-label="계산할 수식" placeholder="0" maxlength="200" />
+        <div id="result" class="result" aria-live="polite">0</div>
+      </div>
+      <div id="status" class="status" aria-live="polite">수식을 입력하거나 버튼을 누르세요.</div>
+      <div class="keys" id="keys">
+        <button class="key fn small" data-action="func" data-value="sin">sin</button><button class="key fn small" data-action="func" data-value="cos">cos</button><button class="key fn small" data-action="func" data-value="tan">tan</button><button class="key fn" data-action="func" data-value="log">log</button><button class="key fn" data-action="func" data-value="ln">ln</button>
+        <button class="key fn" data-action="func" data-value="asin">sin⁻¹</button><button class="key fn" data-action="func" data-value="acos">cos⁻¹</button><button class="key fn" data-action="func" data-value="atan">tan⁻¹</button><button class="key fn" data-action="insert" data-value="^2">x²</button><button class="key fn" data-action="insert" data-value="^">xʸ</button>
+        <button class="key fn" data-action="func" data-value="sqrt">√</button><button class="key fn" data-action="insert" data-value="!">n!</button><button class="key fn" data-action="insert" data-value="pi">π</button><button class="key fn" data-action="insert" data-value="e">e</button><button class="key fn" data-action="reciprocal">1/x</button>
+        <button class="key danger small" data-action="clear">AC</button><button class="key fn" data-action="delete">DEL</button><button class="key fn" data-action="insert" data-value="(">(</button><button class="key fn" data-action="insert" data-value=")">)</button><button class="key op" data-action="insert" data-value="/">÷</button>
+        <button class="key" data-action="insert" data-value="7">7</button><button class="key" data-action="insert" data-value="8">8</button><button class="key" data-action="insert" data-value="9">9</button><button class="key fn" data-action="insert" data-value="%">%</button><button class="key op" data-action="insert" data-value="*">×</button>
+        <button class="key" data-action="insert" data-value="4">4</button><button class="key" data-action="insert" data-value="5">5</button><button class="key" data-action="insert" data-value="6">6</button><button class="key fn small" data-action="insert" data-value="Ans">Ans</button><button class="key op" data-action="insert" data-value="-">−</button>
+        <button class="key" data-action="insert" data-value="1">1</button><button class="key" data-action="insert" data-value="2">2</button><button class="key" data-action="insert" data-value="3">3</button><button class="key fn" data-action="negate">±</button><button class="key op" data-action="insert" data-value="+">+</button>
+        <button class="key" data-action="insert" data-value="0">0</button><button class="key" data-action="insert" data-value=".">.</button><button class="key fn" data-action="insert" data-value="E">EXP</button><button class="key fn" data-action="copy">COPY</button><button class="key equal" data-action="equals">=</button>
+      </div>
+    </section>
+    <div class="foot"><span>키보드 입력 · Enter 계산 · Esc 초기화</span><button id="copy-result">결과 복사</button></div>
+    <section class="history" aria-label="계산 기록"><div class="history-head"><h2>최근 계산 기록</h2><button id="clear-history">기록 지우기</button></div><ul id="history"></ul><p id="empty" class="empty">아직 계산 기록이 없습니다.</p></section>
+    <p class="note">삼각함수의 입력·출력 각도는 DEG/RAD 설정을 따릅니다. %는 수학적 백분율(÷100)입니다. EXP는 지수 표기(예: 2E3 = 2000)입니다. 인터넷 연결이 있어야 Math.js 라이브러리를 불러올 수 있습니다. <a href="https://mathjs.org/" target="_blank" rel="noopener noreferrer">Math.js</a> 기반.</p>
+  </main>
+  <script src="https://cdn.jsdelivr.net/npm/mathjs@15.2.0/lib/browser/math.min.js"></script>
+  <script>
+  (() => {
+    'use strict';
+    const input = document.getElementById('expression');
+    const output = document.getElementById('result');
+    const status = document.getElementById('status');
+    const modeBtn = document.getElementById('mode');
+    const historyEl = document.getElementById('history');
+    const empty = document.getElementById('empty');
+    let mode = 'DEG', ans = 0, lastResult = '0', history = [];
+    try { const saved = JSON.parse(localStorage.getItem('scientific-calc-history') || '[]'); if(Array.isArray(saved)) history=saved.slice(0,15); } catch (_) {}
+    const allowedNames = new Set(['sin','cos','tan','asin','acos','atan','sqrt','log','ln','pi','e','Ans','E']);
+    const mathReady = typeof math !== 'undefined';
+    const rads = x => mode === 'DEG' ? x*Math.PI/180 : x;
+    const angles = x => mode === 'DEG' ? x*180/Math.PI : x;
+    const scope = () => ({
+      sin: x => Math.sin(rads(x)), cos: x => Math.cos(rads(x)), tan: x => Math.tan(rads(x)),
+      asin: x => angles(Math.asin(x)), acos: x => angles(Math.acos(x)), atan: x => angles(Math.atan(x)),
+      sqrt: x => Math.sqrt(x), log: x => Math.log10(x), ln: x => Math.log(x), pi: Math.PI, e: Math.E, Ans:ans
+    });
+    function validate(expr){
+      if(!mathReady) throw Error('계산 라이브러리를 불러오지 못했습니다. 인터넷 연결을 확인하세요.');
+      if(expr.length>200) throw Error('수식은 200자 이내로 입력하세요.');
+      const s = expr.replace(/\s+/g,'').replace(/π/g,'pi').replace(/×/g,'*').replace(/÷/g,'/');
+      if(!s || !/^[0-9a-zA-Z+\-*/^().!%]*$/.test(s)) throw Error('지원하지 않는 문자입니다.');
+      // Scientific literals like 2E3 are supported, but arbitrary identifiers and assignments are not.
+      const withoutExponents = s.replace(/(?:\d+(?:\.\d*)?|\.\d+)[eE][+\-]?\d+/g, '0');
+      for (const match of withoutExponents.matchAll(/[A-Za-z]+/g)) if(!allowedNames.has(match[0])) throw Error('지원하지 않는 함수입니다.');
+      if(/\b(?:sin|cos|tan|asin|acos|atan|sqrt|log|ln)(?!\s*\()/i.test(s)) throw Error('함수 뒤에 괄호가 필요합니다.');
+      // Prevent implicit access to object properties and indexing.
+      if(/\.{2,}/.test(s)) throw Error('올바르지 않은 수식입니다.');
+      return s;
+    }
+    function calculate(expr){
+      const normalized = validate(expr);
+      // Math.js evaluate is constrained here to an input length and known identifiers.
+      const value = math.evaluate(normalized, scope());
+      if(typeof value !== 'number' || !Number.isFinite(value)) throw Error('계산 가능한 실수 결과가 아닙니다.');
+      return value;
+    }
+    function fmt(n){if(Object.is(n,-0)) n=0; return Number(n.toPrecision(12)).toString();}
+    function setStatus(message,isError=false){status.textContent=message;status.classList.toggle('error',isError);}
+    function refresh(){
+      const raw=input.value.trim();
+      if(!raw){output.textContent='0';setStatus('수식을 입력하거나 버튼을 누르세요.');return;}
+      try{lastResult=fmt(calculate(raw));output.textContent=lastResult;setStatus('미리보기 결과 · Enter 또는 = 로 확정');}
+      catch(e){output.textContent='…';setStatus(e.message || '수식을 확인하세요.',true);}
+    }
+    function insert(text){
+      const start=input.selectionStart ?? input.value.length,end=input.selectionEnd ?? input.value.length;
+      input.value=(input.value.slice(0,start)+text+input.value.slice(end)).slice(0,200);
+      const pos=Math.min(start+text.length,input.value.length);input.focus();input.setSelectionRange(pos,pos);refresh();
+    }
+    function remove(){const a=input.selectionStart??input.value.length,b=input.selectionEnd??input.value.length;
+      if(a!==b){input.value=input.value.slice(0,a)+input.value.slice(b);input.setSelectionRange(a,a);}
+      else if(a>0){input.value=input.value.slice(0,a-1)+input.value.slice(a);input.setSelectionRange(a-1,a-1);}
+      input.focus();refresh();}
+    function persist(){try{localStorage.setItem('scientific-calc-history',JSON.stringify(history));}catch(_){}}
+    function renderHistory(){historyEl.replaceChildren();empty.hidden=history.length>0;
+      for(const h of history){const li=document.createElement('li'),detail=document.createElement('div'),expr=document.createElement('div'),answer=document.createElement('div'),btn=document.createElement('button');
+        detail.className='item';expr.className='expr';answer.className='answer';expr.textContent=h.expr+' ['+h.mode+']';answer.textContent=h.result;btn.textContent='불러오기';btn.addEventListener('click',()=>{input.value=h.expr;mode=h.mode;modeBtn.textContent=mode;refresh();input.focus();});detail.append(expr,answer);li.append(detail,btn);historyEl.append(li);}}
+    function equals(){try{const expr=input.value.trim();const value=calculate(expr);const result=fmt(value);ans=value;lastResult=result;output.textContent=result;
+      history.unshift({expr,result,mode});history=history.slice(0,15);persist();renderHistory();setStatus('계산 완료 · Ans에 결과 저장');}
+      catch(e){setStatus(e.message||'계산 오류',true);output.textContent='오류';}}
+    async function copy(){try{await navigator.clipboard.writeText(lastResult);setStatus('결과를 복사했습니다.');}catch(_){setStatus('복사 권한을 확인하세요.',true);}}
+    document.getElementById('keys').addEventListener('click',e=>{
+      const button=e.target.closest('button[data-action]');if(!button)return;
+      const action=button.dataset.action,value=button.dataset.value;
+      if(action==='insert')insert(value);
+      else if(action==='func')insert(value+'(');
+      else if(action==='clear'){input.value='';lastResult='0';refresh();input.focus();}
+      else if(action==='delete')remove();
+      else if(action==='reciprocal'){input.value='1/('+ (input.value||'1') +')';refresh();input.focus();}
+      else if(action==='negate'){input.value='-('+ (input.value||'0') +')';refresh();input.focus();}
+      else if(action==='equals')equals();
+      else if(action==='copy')copy();
+    });
+    modeBtn.addEventListener('click',()=>{mode=mode==='DEG'?'RAD':'DEG';modeBtn.textContent=mode;refresh();});
+    input.addEventListener('input',refresh);
+    input.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();equals();}else if(e.key==='Escape'){e.preventDefault();input.value='';refresh();}});
+    document.getElementById('copy-result').addEventListener('click',copy);
+    document.getElementById('clear-history').addEventListener('click',()=>{history=[];persist();renderHistory();});
+    renderHistory();refresh();
+  })();
+  </script>
+</body>
+</html>
